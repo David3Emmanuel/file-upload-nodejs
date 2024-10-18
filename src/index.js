@@ -1,28 +1,13 @@
-import fs from "fs/promises";
 import Server from "../lib/Server.js";
+import uploadRouter from "./routes/upload.js";
 
 const server = new Server();
+const router = server.router;
 
-server.post("/", (req, res) => {
-  const { name, file } = req.body;
-  if (!file) {
-    res.writeHead(400, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ message: "No file uploaded" }));
-    return;
-  }
-  fs.writeFile(`./uploads/${name || file.fileName}`, file.contents, {
-    mode: 0o765,
-  })
-    .then(() => {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(
-        JSON.stringify({ message: "Uploaded", ...file, contents: undefined })
-      );
-    })
-    .catch((err) => {
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: err.message }));
-    });
+router.get("/", (req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Hello, World!");
 });
+router.route("/upload", uploadRouter);
 
 server.start(3001);
