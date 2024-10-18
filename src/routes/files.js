@@ -20,9 +20,7 @@ router.get("/", (req, res) => {
       })
       .catch((err) => {
         res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(
-          JSON.stringify({ error: "File Not Found", message: err.message })
-        );
+        res.end(JSON.stringify({ error: "File Not Found" }));
       });
     // Get all files in the uploads directory
   } else {
@@ -44,6 +42,27 @@ router.get("/metadata", (req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(metadata);
   });
+});
+
+router.delete("/", (req, res) => {
+  const fileName = req.query.get("file");
+  Promise.all([
+    fs.rm(`./uploads/${fileName}`),
+    fs.readFile("./uploads/.meta.json"),
+  ])
+    .then(([_, allMetadata]) => {
+      const metadata = JSON.parse(allMetadata);
+      metadata[fileName] = undefined;
+      return fs.writeFile("./uploads/.meta.json", JSON.stringify(metadata));
+    })
+    .then(() => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ message: "File Deleted" }));
+    })
+    .catch((err) => {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "File Not Found" }));
+    });
 });
 
 export default router;
